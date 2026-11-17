@@ -1,0 +1,10 @@
+# Minimal runtime deps for the Streamlit app (Streamlit Cloud reads this file
+# before the root requirements.txt because it sits next to app.py).
+# Versions match the Colab environment the pickled models were trained in:
+# a scikit-learn mismatch can break joblib.load().
+streamlit>=1.35,<2
+pandas==2.2.3
+numpy==2.4.6
+scikit-learn==1.6.1
+lightgbm==4.6.0
+joblib==1.6.0
