@@ -4,6 +4,8 @@
 
 This is an end-to-end ML project covering problem framing, leakage-safe cleaning, EDA, feature engineering, time-aware validation, tuned gradient boosting, SHAP explainability and a Streamlit app. Its main result is an honest one: rigorous validation showed that the dataset contains **no learnable signal**, and the project shows how to prove that instead of reporting a misleadingly "good" model.
 
+**[▶ Try the live app](https://transit-delay-prediction-app.streamlit.app)**
+
 ![Model comparison](reports/figures/08_model_comparison.png)
 
 ---
@@ -87,12 +89,12 @@ raw CSV ─► cleaning & audit ─► EDA ─► Pipeline[ add_features ─► 
 
 `app/app.py` takes a route, time, weather and event as input and returns the predicted delay, P(late by more than 5 min) and a verdict. It loads the same pipeline objects that were evaluated, so it applies exactly the same features and preprocessing as training. Input sliders are limited to the ranges seen in training.
 
-<!-- Live demo: https://<your-app>.streamlit.app -->
+**▶ Live demo: [transit-delay-prediction-app.streamlit.app](https://transit-delay-prediction-app.streamlit.app)**
 
 ## 6. How to run
 
 ```bash
-git clone https://github.com/<your-username>/transit-delay-prediction.git
+git clone https://github.com/asilbek-maker/transit-delay-prediction.git
 cd transit-delay-prediction
 python -m venv .venv && source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
