@@ -4,6 +4,10 @@
 
 This is an end-to-end ML project covering problem framing, leakage-safe cleaning, EDA, feature engineering, time-aware validation, tuned gradient boosting, SHAP explainability and a Streamlit app. Its main result is an honest one: rigorous validation showed that the dataset contains **no learnable signal**, and the project shows how to prove that instead of reporting a misleadingly "good" model.
 
+[![CI](https://github.com/asilbek-maker/transit-delay-prediction/actions/workflows/ci.yml/badge.svg)](https://github.com/asilbek-maker/transit-delay-prediction/actions/workflows/ci.yml)
+![Python 3.12](https://img.shields.io/badge/python-3.12-blue)
+[![Streamlit app](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://transit-delay-prediction-app.streamlit.app)
+
 **[▶ Try the live app](https://transit-delay-prediction-app.streamlit.app)**
 
 ![Model comparison](reports/figures/08_model_comparison.png)
@@ -87,7 +91,15 @@ raw CSV ─► cleaning & audit ─► EDA ─► Pipeline[ add_features ─► 
 
 ## 5. Streamlit app
 
-`app/app.py` takes a route, time, weather and event as input and returns the predicted delay, P(late by more than 5 min) and a verdict. It loads the same pipeline objects that were evaluated, so it applies exactly the same features and preprocessing as training. Input sliders are limited to the ranges seen in training.
+`app/app.py` loads the same pipeline objects that were evaluated, so it applies exactly the same features and preprocessing as training.
+- **Prediction:** enter a trip, the weather forecast and any nearby event, and get the predicted delay, expected arrival time, P(late by more than 5 min) and a verdict.
+- **Why this prediction?:** exact TreeSHAP contributions from LightGBM (`pred_contrib`), grouped into readable factors.
+- **What-if:** delay risk for the same trip at every hour of the day.
+- **Model performance, data insights and a model card:** the honest results, presented inside the app.
+
+Input sliders are limited to the ranges seen in training.
+
+**Tests:** `pytest` (17 tests) covers the feature logic, loading the saved models, and rendering the app headlessly with Streamlit's `AppTest`. Every push runs them on GitHub Actions.
 
 **▶ Live demo: [transit-delay-prediction-app.streamlit.app](https://transit-delay-prediction-app.streamlit.app)**
 
@@ -116,6 +128,8 @@ streamlit run app/app.py
 ├── reports/figures/            all charts used here
 ├── reports/results_*.md        full model comparison tables
 ├── src/features.py             shared feature engineering + preprocessing
+├── tests/                      pytest suite (features, models, app)
+├── .github/workflows/ci.yml    CI on every push
 └── requirements.txt
 ```
 
