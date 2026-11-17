@@ -1,0 +1,258 @@
+{
+  "raw_input_columns": [
+    "transport_type",
+    "route_id",
+    "origin_station",
+    "destination_station",
+    "scheduled_departure",
+    "scheduled_arrival",
+    "weather_condition",
+    "temperature_C",
+    "humidity_percent",
+    "wind_speed_kmh",
+    "precipitation_mm",
+    "event_type",
+    "event_attendance_est",
+    "traffic_congestion_index",
+    "holiday",
+    "peak_hour",
+    "weekday",
+    "season"
+  ],
+  "categories": {
+    "transport_type": [
+      "Bus",
+      "Metro",
+      "Train",
+      "Tram"
+    ],
+    "route_id": [
+      "Route_1",
+      "Route_10",
+      "Route_11",
+      "Route_12",
+      "Route_13",
+      "Route_14",
+      "Route_15",
+      "Route_16",
+      "Route_17",
+      "Route_18",
+      "Route_19",
+      "Route_2",
+      "Route_20",
+      "Route_3",
+      "Route_4",
+      "Route_5",
+      "Route_6",
+      "Route_7",
+      "Route_8",
+      "Route_9"
+    ],
+    "origin_station": [
+      "Station_1",
+      "Station_10",
+      "Station_11",
+      "Station_12",
+      "Station_13",
+      "Station_14",
+      "Station_15",
+      "Station_16",
+      "Station_17",
+      "Station_18",
+      "Station_19",
+      "Station_2",
+      "Station_20",
+      "Station_21",
+      "Station_22",
+      "Station_23",
+      "Station_24",
+      "Station_25",
+      "Station_26",
+      "Station_27",
+      "Station_28",
+      "Station_29",
+      "Station_3",
+      "Station_30",
+      "Station_31",
+      "Station_32",
+      "Station_33",
+      "Station_34",
+      "Station_35",
+      "Station_36",
+      "Station_37",
+      "Station_38",
+      "Station_39",
+      "Station_4",
+      "Station_40",
+      "Station_41",
+      "Station_42",
+      "Station_43",
+      "Station_44",
+      "Station_45",
+      "Station_46",
+      "Station_47",
+      "Station_48",
+      "Station_49",
+      "Station_5",
+      "Station_50",
+      "Station_6",
+      "Station_7",
+      "Station_8",
+      "Station_9"
+    ],
+    "destination_station": [
+      "Station_1",
+      "Station_10",
+      "Station_11",
+      "Station_12",
+      "Station_13",
+      "Station_14",
+      "Station_15",
+      "Station_16",
+      "Station_17",
+      "Station_18",
+      "Station_19",
+      "Station_2",
+      "Station_20",
+      "Station_21",
+      "Station_22",
+      "Station_23",
+      "Station_24",
+      "Station_25",
+      "Station_26",
+      "Station_27",
+      "Station_28",
+      "Station_29",
+      "Station_3",
+      "Station_30",
+      "Station_31",
+      "Station_32",
+      "Station_33",
+      "Station_34",
+      "Station_35",
+      "Station_36",
+      "Station_37",
+      "Station_38",
+      "Station_39",
+      "Station_4",
+      "Station_40",
+      "Station_41",
+      "Station_42",
+      "Station_43",
+      "Station_44",
+      "Station_45",
+      "Station_46",
+      "Station_47",
+      "Station_48",
+      "Station_49",
+      "Station_5",
+      "Station_50",
+      "Station_6",
+      "Station_7",
+      "Station_8",
+      "Station_9"
+    ],
+    "weather_condition": [
+      "Clear",
+      "Cloudy",
+      "Fog",
+      "Rain",
+      "Snow",
+      "Storm"
+    ],
+    "event_type": [
+      "Concert",
+      "Festival",
+      "None",
+      "Parade",
+      "Protest",
+      "Sports"
+    ]
+  },
+  "numeric_ranges": {
+    "temperature_C": {
+      "min": -5.0,
+      "max": 35.0,
+      "median": 15.1
+    },
+    "humidity_percent": {
+      "min": 30.0,
+      "max": 99.0,
+      "median": 65.0
+    },
+    "wind_speed_kmh": {
+      "min": 0.0,
+      "max": 59.0,
+      "median": 29.0
+    },
+    "precipitation_mm": {
+      "min": 0.0,
+      "max": 20.0,
+      "median": 9.9
+    },
+    "event_attendance_est": {
+      "min": 0.0,
+      "max": 50000.0,
+      "median": 0.0
+    },
+    "traffic_congestion_index": {
+      "min": 0.0,
+      "max": 99.0,
+      "median": 49.0
+    }
+  },
+  "duration_range": {
+    "min": 16,
+    "max": 59,
+    "median": 37
+  },
+  "delay_threshold_min": 5,
+  "classification_threshold": 0.417,
+  "models": {
+    "regression": "Random Forest (tuned)",
+    "classification": "LightGBM (tuned)"
+  },
+  "metrics": {
+    "regression": {
+      "cv_MAE": 7.953,
+      "cv_MAE_std": 0.174,
+      "cv_RMSE": 9.296,
+      "cv_R2": -0.005,
+      "test_MAE": 8.17,
+      "test_RMSE": 9.481,
+      "test_R2": -0.009
+    },
+    "classification": {
+      "cv_ROC_AUC": 0.513,
+      "cv_ROC_AUC_std": 0.043,
+      "cv_PR_AUC": 0.75,
+      "test_ROC_AUC": 0.459,
+      "test_PR_AUC": 0.755,
+      "threshold": 0.417,
+      "test_F1": 0.867,
+      "test_precision": 0.767,
+      "test_recall": 0.997
+    }
+  },
+  "permutation_test": {
+    "regression": {
+      "model": "Random Forest (tuned)",
+      "score": -7.952989006221432,
+      "perm_mean": -7.939928420433935,
+      "perm_std": 0.05188398084471598,
+      "p_value": 0.6451612903225806
+    },
+    "classification": {
+      "model": "LightGBM (tuned)",
+      "score": 0.5134651820568557,
+      "perm_mean": 0.5001415675027396,
+      "perm_std": 0.01785889612517052,
+      "p_value": 0.25806451612903225
+    }
+  },
+  "train_period": [
+    "2023-01-01 05:00:00",
+    "2023-01-17 20:45:00"
+  ],
+  "seed": 42
+}

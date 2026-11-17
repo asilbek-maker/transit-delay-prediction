@@ -1,0 +1,13 @@
+pandas==2.2.3
+numpy==2.4.6
+scikit-learn==1.6.1
+xgboost==3.4.1
+lightgbm==4.6.0
+shap==0.54.1
+optuna==5.1.0
+matplotlib==3.10.0
+seaborn==0.13.2
+scipy==1.16.3
+joblib==1.6.0
+streamlit>=1.35
+tabulate

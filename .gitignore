@@ -1,0 +1,15 @@
+# Raw/processed data: Kaggle licence, don't redistribute
+data/raw/*
+data/processed/*
+!**/.gitkeep
+
+# Models ARE committed (small, compressed) so Streamlit Cloud can load them.
+*.zip
+
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+.env
