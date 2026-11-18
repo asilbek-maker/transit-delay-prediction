@@ -1,4 +1,4 @@
-"""Collect live Seoul subway train positions (서울시 지하철 실시간 열차 위치정보).
+"""Collect live Seoul rail positions: metro, KORAIL commuter rail and light rail.
 
 Polls the Seoul real-time subway API for the configured lines and appends every
 train's position to a daily CSV. Repeated snapshots let us reconstruct when each
@@ -8,7 +8,7 @@ Standard library only, so it runs anywhere (laptop, GitHub Actions) without pip.
 
 Usage:
     python -m src.collectors.seoul_subway --once
-    python -m src.collectors.seoul_subway --minutes 350 --interval 180
+    python -m src.collectors.seoul_subway --minutes 345
 
 The API key is read from SEOUL_SUBWAY_KEY (environment or .env). Without it the
 public "sample" key is used, which only returns 5 trains per call (testing only).
@@ -28,9 +28,16 @@ from pathlib import Path
 
 KST = timezone(timedelta(hours=9))
 API = "http://swopenapi.seoul.go.kr/api/subway/{key}/json/realtimePosition/0/{rows}/{line}"
-DEFAULT_LINES = ["2호선", "9호선"]
+# Lines tracked by default, mapped to the project's transport modes.
+# Korea has no operating tram yet (위례선 opens 2027), so light rail stands in.
+MODE_BY_LINE = {
+    "2호선": "Metro", "9호선": "Metro",                                 # urban metro
+    "1호선": "Train", "경의중앙선": "Train", "수인분당선": "Train",     # KORAIL commuter rail
+    "우이신설선": "Light rail", "신림선": "Light rail",                 # light rail
+}
+DEFAULT_LINES = list(MODE_BY_LINE)
 FIELDS = [
-    "polled_at_kst", "subwayId", "subwayNm", "statnId", "statnNm", "trainNo",
+    "polled_at_kst", "mode", "subwayId", "subwayNm", "statnId", "statnNm", "trainNo",
     "recptnDt", "updnLine", "statnTid", "statnTnm", "trainSttus", "directAt", "lstcarAt",
 ]
 # Service runs ~05:30-01:00 KST. Skipping the night keeps us under the daily quota.
@@ -87,7 +94,8 @@ def append_rows(out_dir: Path, rows: list[dict], polled_at: datetime) -> Path:
             writer.writeheader()
         stamp = polled_at.isoformat(timespec="seconds")
         for row in rows:
-            writer.writerow({**row, "polled_at_kst": stamp})
+            writer.writerow({**row, "polled_at_kst": stamp,
+                             "mode": MODE_BY_LINE.get(row.get("subwayNm", ""), "Other")})
     return path
 
 
@@ -109,7 +117,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=Path("data/live/subway"))
     parser.add_argument("--once", action="store_true", help="poll a single time")
     parser.add_argument("--minutes", type=float, default=0, help="keep polling this long")
-    parser.add_argument("--interval", type=int, default=180, help="seconds between polls")
+    # 7 lines x one call per poll: every 9 min over ~20 service hours ≈ 930 calls/day,
+    # under the 1,000/day quota of the real-time subway key.
+    parser.add_argument("--interval", type=int, default=540, help="seconds between polls")
     parser.add_argument("--require-key", action="store_true",
                         help="exit quietly if only the sample key is available")
     args = parser.parse_args(argv)

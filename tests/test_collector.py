@@ -33,3 +33,12 @@ def test_require_key_skips_when_only_sample(monkeypatch, tmp_path):
     monkeypatch.setattr(s, "load_key", lambda: "sample")
     assert s.main(["--minutes", "1", "--require-key", "--out", str(tmp_path)]) == 0
     assert not list(tmp_path.iterdir())
+
+
+def test_every_default_line_has_a_transport_mode(tmp_path):
+    assert set(s.MODE_BY_LINE.values()) == {"Metro", "Train", "Light rail"}
+    now = datetime(2026, 11, 18, 9, 0, tzinfo=s.KST)
+    path = s.append_rows(tmp_path, [{"subwayNm": "수인분당선"}, {"subwayNm": "신림선"}], now)
+    with path.open(encoding="utf-8") as fh:
+        modes = [r["mode"] for r in csv.DictReader(fh)]
+    assert modes == ["Train", "Light rail"]
