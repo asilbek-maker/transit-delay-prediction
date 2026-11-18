@@ -1,7 +1,7 @@
-name: Collect Seoul subway positions
+name: Collect Seoul rail positions
 
 # Four ~5.75-hour shifts per day cover the whole service day. Each shift polls
-# every 3 minutes (service hours only) and commits the CSVs to the live-data
+# 7 lines (metro, KORAIL commuter rail, light rail) every 9 minutes (service hours only) and commits the CSVs to the live-data
 # branch, keeping main free of data commits ("git scraping").
 on:
   schedule:
@@ -41,7 +41,7 @@ jobs:
         run: >
           python -m src.collectors.seoul_subway
           --minutes "${{ inputs.minutes || '345' }}"
-          --interval 180
+          --interval 540
           --out store/subway
           ${{ github.event_name == 'schedule' && '--require-key' || '' }}
 
