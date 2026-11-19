@@ -171,7 +171,9 @@ def main(argv: list[str] | None = None) -> int:
             if in_service(datetime.now(KST)):
                 rows += poll_once(key, args.routes, args.out)
                 polls += 1
-            time.sleep(max(0, args.interval - (time.monotonic() - started)))
+            # never sleep past the deadline (a run should end on time)
+        time.sleep(max(0, min(args.interval - (time.monotonic() - started),
+                              deadline - time.monotonic())))
         print(f"Done: {polls} polls, {rows} rows")
     except QuotaExceeded as exc:
         print(f"Daily quota reached, stopping until tomorrow: {exc}")

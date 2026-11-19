@@ -98,7 +98,8 @@ def nearest_stops(index: dict, lat: float, lon: float, k: int = 5,
     return sorted(by_ars.values(), key=lambda s: s["distance_m"])[:k]
 
 
-def geocode(query: str, timeout: float = 15) -> tuple[float, float, str] | None:
+def geocode(query: str, timeout: float = 15,
+            lang: str = "ko") -> tuple[float, float, str] | None:
     """Place name or address -> (lat, lon, label) via OpenStreetMap Nominatim.
 
     Bounded to the Seoul area. Callers must cache results: Nominatim's usage
@@ -106,7 +107,7 @@ def geocode(query: str, timeout: float = 15) -> tuple[float, float, str] | None:
     """
     params = urllib.parse.urlencode({
         "q": query, "format": "jsonv2", "limit": 1, "countrycodes": "kr",
-        "viewbox": SEOUL_VIEWBOX, "bounded": 1, "accept-language": "ko"})
+        "viewbox": SEOUL_VIEWBOX, "bounded": 1, "accept-language": lang})
     req = urllib.request.Request(f"{NOMINATIM}?{params}", headers={"User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
