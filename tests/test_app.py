@@ -40,7 +40,7 @@ def app():
 
 def test_app_renders_without_exceptions(app):
     assert not app.exception, app.exception
-    assert len(app.tabs) == 4
+    assert len(app.tabs) == 5
     labels = [m.label for m in app.metric]
     assert "Predicted arrival delay" in labels
     assert any(label.startswith("Chance of") for label in labels)
@@ -53,3 +53,19 @@ def test_app_updates_for_other_inputs(app, event, weather):
     app.toggle(key="holiday").set_value(True)
     app.run()
     assert not app.exception, app.exception
+
+
+def test_live_lookup_without_key_explains_instead_of_failing(app, monkeypatch):
+    monkeypatch.delenv("DATA_GO_KR_KEY", raising=False)
+    app.text_input(key="stop_query").input("신설동")
+    app.run()
+    assert not app.exception, app.exception
+    assert app.selectbox(key="stop_choice").options          # matching stops listed
+    assert any("DATA_GO_KR_KEY" in w.value for w in app.warning)
+
+
+def test_live_lookup_with_unknown_stop_shows_hint(app):
+    app.text_input(key="stop_query").input("존재하지않는정류장")
+    app.run()
+    assert not app.exception, app.exception
+    assert any("No stop" in i.value for i in app.info)

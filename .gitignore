@@ -13,3 +13,6 @@ __pycache__/
 .venv/
 venv/
 .env
+
+# Streamlit secrets (API keys)
+.streamlit/secrets.toml

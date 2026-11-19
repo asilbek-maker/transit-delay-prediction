@@ -6,8 +6,9 @@ Deploy:        Streamlit Community Cloud -> main file path = app/app.py
 from __future__ import annotations
 
 import json
+import os
 import sys
-from datetime import date, datetime, time, timedelta
+from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
 
 import altair as alt
@@ -21,6 +22,11 @@ sys.path.insert(0, str(ROOT))
 # The pickled pipelines reference src.features.add_features, so the module
 # must be importable before joblib.load().
 from src.features import RUSH_HOURS, SEASON_BY_MONTH  # noqa: E402
+from src.collectors.seoul_bus import QuotaExceeded, fetch_route  # noqa: E402
+from src.live_bus import load_stop_index, search_stops, summarize_stop  # noqa: E402
+
+KST = timezone(timedelta(hours=9))
+APP_DAILY_CALL_CAP = 300   # protects the quota shared with the scheduled data collector
 
 MODEL_DIR = ROOT / "models"
 FIG_DIR = ROOT / "reports" / "figures"
@@ -86,6 +92,42 @@ def load_results(name: str) -> pd.DataFrame:
     rows = [[c.strip() for c in ln.strip("|").split("|")] for ln in lines[2:]]
     table = pd.DataFrame(rows, columns=header).set_index("model")
     return table.apply(pd.to_numeric, errors="coerce")
+
+
+@st.cache_data
+def stop_index() -> dict:
+    return load_stop_index()
+
+
+def bus_key() -> str:
+    """Key from Streamlit secrets (Cloud) or the environment (local)."""
+    try:
+        key = st.secrets.get("DATA_GO_KR_KEY", "")
+    except Exception:  # noqa: BLE001 - no secrets file configured
+        key = ""
+    return str(key or os.environ.get("DATA_GO_KR_KEY", "")).strip()
+
+
+@st.cache_resource
+def call_budget() -> dict:
+    return {"day": None, "used": 0}
+
+
+@st.cache_data(ttl=120, show_spinner=False)
+def live_route(route_id: str) -> tuple[list[dict], str]:
+    """All stops of one route, cached 2 min and capped per day for the whole app."""
+    budget = call_budget()
+    today = datetime.now(KST).date().isoformat()
+    if budget["day"] != today:
+        budget.update(day=today, used=0)
+    if budget["used"] >= APP_DAILY_CALL_CAP:
+        return [], "cap"
+    budget["used"] += 1
+    try:
+        rows = fetch_route(bus_key(), route_id)
+    except QuotaExceeded:
+        return [], "quota"
+    return rows, datetime.now(KST).strftime("%H:%M:%S")
 
 
 try:
@@ -167,8 +209,9 @@ def num_slider(label: str, col: str, step: float = 1.0, key: str | None = None):
 # Sidebar: inputs
 # --------------------------------------------------------------------------
 with st.sidebar:
-    st.markdown("## 🚌 Plan a trip")
-    st.caption("Everything here is known **before departure**: timetable, forecast, events.")
+    st.markdown("## 🔮 Demo model inputs")
+    st.caption("These drive the **Prediction (demo model)** tab. Everything here is known "
+               "**before departure**: timetable, forecast, events.")
     with st.form("trip_form"):
         st.markdown("##### 🚏 Trip")
         transport = st.selectbox("Transport type", cats["transport_type"], key="transport")
@@ -238,8 +281,73 @@ with head_r:
     st.link_button("View code on GitHub", REPO_URL)
     st.link_button("Open the notebook", NOTEBOOK_URL)
 
-tab_pred, tab_perf, tab_insights, tab_about = st.tabs(
-    ["🔮 Prediction", "📊 Model performance", "🔍 Data insights", "ℹ️ About & model card"])
+tab_live, tab_pred, tab_perf, tab_insights, tab_about = st.tabs(
+    ["🚏 Live bus lookup", "🔮 Prediction (demo model)", "📊 Model performance",
+     "🔍 Data insights", "ℹ️ About & model card"])
+
+# --------------------------------------------------------------------------
+# Tab 0: live bus lookup (real Seoul data)
+# --------------------------------------------------------------------------
+STATUS_ICON = {"On schedule": "✅", "Delayed": "⚠️", "Bunched": "🔁", "No bus": "⏸️"}
+
+with tab_live:
+    st.subheader("Where are you? See live buses and delays")
+    index = stop_index()
+    route_names = ", ".join(r["rtNm"] for r in index["routes"].values())
+    st.caption(f"Real-time data from Seoul (서울특별시 버스도착정보) for trunk routes {route_names}. "
+               "A bus counts as **delayed** when it is further away than its scheduled interval "
+               "(+2 min tolerance), and **bunched** when two buses arrive much closer together "
+               "than scheduled.")
+    query = st.text_input("Stop name or stop number",
+                          placeholder="e.g. 선릉역, 신설동, 강남, 잠실, 23218", key="stop_query")
+    if query:
+        results = search_stops(index, query)
+        if not results:
+            st.info(f"No stop on routes {route_names} matches “{query}”. "
+                    "Try a shorter name, e.g. 선릉 instead of 선릉역 2번출구.")
+        else:
+            labels = [f"{s['stNm']}  ·  #{s['arsId']}  ·  routes "
+                      f"{', '.join(r['rtNm'] for r in s['routes'])}" for s in results]
+            choice = st.selectbox(f"{len(results)} matching stop(s)", range(len(results)),
+                                  format_func=lambda i: labels[i], key="stop_choice")
+            stop = results[choice]
+            if not bus_key():
+                st.warning("Live data isn't configured on this deployment: add the "
+                           "`DATA_GO_KR_KEY` secret to enable it.", icon="🔑")
+            else:
+                statuses, updated = [], None
+                for r in stop["routes"]:
+                    rows, stamp = live_route(r["route_id"])
+                    if stamp in ("cap", "quota"):
+                        st.warning("Live lookups have hit today's limit. Please try again tomorrow.",
+                                   icon="⏳")
+                        break
+                    updated = stamp
+                    row = next((x for x in rows if int(x.get("staOrd", -1)) == r["ord"]), None)
+                    if row is not None:
+                        statuses.append((r, summarize_stop(row, r["term"])))
+                if statuses:
+                    late = [s for _, s in statuses if s.status == "Delayed"]
+                    headline = (f"⚠️ {len(late)} of {len(statuses)} route(s) running late"
+                                if late else f"✅ All {len(statuses)} route(s) on schedule")
+                    st.markdown(f"#### {stop['stNm']} (#{stop['arsId']}): {headline}")
+                    st.caption(f"Updated {updated} KST · refreshes every 2 minutes")
+                for r, s in statuses:
+                    with st.container(border=True):
+                        st.markdown(f"**Route {s.route}** → towards {r['next_stop']}")
+                        c1, c2, c3, c4 = st.columns(4)
+                        c1.metric("Next bus", "Arriving" if s.next_min == 0
+                                  else (f"{s.next_min:.0f} min" if s.next_min else "—"))
+                        c2.metric("Following bus",
+                                  f"{s.second_min:.0f} min" if s.second_min else "—")
+                        c3.metric("Status", f"{STATUS_ICON.get(s.status, 'ℹ️')} {s.status}")
+                        c4.metric("Delay vs schedule",
+                                  f"+{s.delay_min:.0f} min" if s.delay_min else "0 min")
+                        st.caption(f"Scheduled every {s.term_min} min · {s.crowding}"
+                                   + (f" · {s.message}" if s.message else ""))
+                if st.button("Refresh now", key="refresh_live"):
+                    live_route.clear()
+                    st.rerun()
 
 # --------------------------------------------------------------------------
 # Tab 1: prediction
