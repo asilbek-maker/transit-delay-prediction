@@ -25,6 +25,8 @@ from src.features import RUSH_HOURS, SEASON_BY_MONTH  # noqa: E402
 from src.collectors.seoul_bus import QuotaExceeded, fetch_route  # noqa: E402
 from src.live_bus import (geocode, load_stop_index, nearest_stops,  # noqa: E402
                           search_stops, summarize_stop)
+from src.directions import (DirectionsError, format_duration, osrm_eta,  # noqa: E402
+                            transit_routes)
 
 try:  # browser geolocation component (optional: the app still works without it)
     from streamlit_js_eval import get_geolocation
@@ -32,7 +34,8 @@ except ImportError:  # pragma: no cover
     get_geolocation = None
 
 KST = timezone(timedelta(hours=9))
-APP_DAILY_CALL_CAP = 300   # protects the quota shared with the scheduled data collector
+APP_DAILY_CALL_CAP = 150   # protects the bus-API quota shared with the scheduled collector
+ODSAY_DAILY_CAP = 300      # app-wide cap on ODsay route searches per day
 
 MODEL_DIR = ROOT / "models"
 FIG_DIR = ROOT / "reports" / "figures"
@@ -105,13 +108,17 @@ def stop_index() -> dict:
     return load_stop_index()
 
 
-def bus_key() -> str:
-    """Key from Streamlit secrets (Cloud) or the environment (local)."""
+def secret(name: str) -> str:
+    """A key from Streamlit secrets (Cloud) or the environment (local)."""
     try:
-        key = st.secrets.get("DATA_GO_KR_KEY", "")
+        value = st.secrets.get(name, "")
     except Exception:  # noqa: BLE001 - no secrets file configured
-        key = ""
-    return str(key or os.environ.get("DATA_GO_KR_KEY", "")).strip()
+        value = ""
+    return str(value or os.environ.get(name, "")).strip()
+
+
+def bus_key() -> str:
+    return secret("DATA_GO_KR_KEY")
 
 
 @st.cache_resource
@@ -120,7 +127,7 @@ def geocode_clock() -> dict:
 
 
 @st.cache_data(ttl=24 * 3600, show_spinner=False)
-def cached_geocode(query: str):
+def cached_geocode(query: str, lang: str = "ko"):
     """Nominatim allows 1 request/second: cache for a day and space out calls."""
     import time as _time
     if os.environ.get("TRANSIT_OFFLINE") == "1":      # tests: never call external services
@@ -130,7 +137,39 @@ def cached_geocode(query: str):
     if wait > 0:
         _time.sleep(wait)
     clock["last"] = _time.monotonic()
-    return geocode(query)
+    return geocode(query, lang=lang)
+
+
+@st.cache_resource
+def odsay_budget() -> dict:
+    return {"day": None, "used": 0}
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def cached_transit(start: tuple, end: tuple):
+    """ODsay routes for rounded coordinates, cached 10 min and capped per day."""
+    if os.environ.get("TRANSIT_OFFLINE") == "1":
+        return "offline", []
+    budget = odsay_budget()
+    today = datetime.now(KST).date().isoformat()
+    if budget["day"] != today:
+        budget.update(day=today, used=0)
+    if budget["used"] >= ODSAY_DAILY_CAP:
+        return "cap", []
+    budget["used"] += 1
+    try:
+        return "ok", transit_routes(secret("ODSAY_KEY"), start, end, limit=5)
+    except DirectionsError as exc:
+        return f"error:{exc}", []
+    except (OSError, ValueError) as exc:
+        return f"error:network ({exc.__class__.__name__})", []
+
+
+@st.cache_data(ttl=600, show_spinner=False)
+def cached_osrm(mode: str, start: tuple, end: tuple):
+    if os.environ.get("TRANSIT_OFFLINE") == "1":
+        return None
+    return osrm_eta(mode, start, end)
 
 
 @st.cache_resource
@@ -306,14 +345,157 @@ with head_r:
     st.link_button("View code on GitHub", REPO_URL)
     st.link_button("Open the notebook", NOTEBOOK_URL)
 
-tab_live, tab_pred, tab_perf, tab_insights, tab_about = st.tabs(
-    ["🚏 Live bus lookup", "🔮 Prediction (demo model)", "📊 Model performance",
-     "🔍 Data insights", "ℹ️ About & model card"])
+tab_dir, tab_live, tab_pred, tab_perf, tab_insights, tab_about = st.tabs(
+    ["🧭 Directions", "🚏 Live bus stops", "🔮 Prediction (demo model)",
+     "📊 Model performance", "🔍 Data insights", "ℹ️ About & model card"])
+
+# --------------------------------------------------------------------------
+# Tab: directions (ODsay transit + live bus status, OSRM car/walk/bike)
+# --------------------------------------------------------------------------
+STATUS_ICON = {"On schedule": "✅", "Delayed": "⚠️", "Bunched": "🔁", "No bus": "⏸️"}
+
+
+def _swap_directions():
+    st.session_state["dir_from"], st.session_state["dir_to"] = (
+        st.session_state.get("dir_to", ""), st.session_state.get("dir_from", ""))
+
+
+def live_bus_line(leg) -> str:
+    """One-line live status for a bus leg, or '' when unavailable."""
+    if not (bus_key() and leg.seoul_route_id and leg.seoul_stop_id):
+        return ""
+    rows, stamp = live_route(leg.seoul_route_id)
+    if stamp in ("cap", "quota"):
+        return "⏳ live status unavailable (daily limit reached)"
+    row = next((x for x in rows if x.get("stId") == leg.seoul_stop_id), None)
+    if row is None:
+        return ""
+    s = summarize_stop(row, int(row.get("term") or leg.interval_min or 0))
+    icon = STATUS_ICON.get(s.status, "ℹ️")
+    if s.next_min is None:
+        return f"{icon} {s.message or 'No bus approaching'}"
+    when = "arriving now" if s.next_min == 0 else f"next bus in {s.next_min:.0f} min"
+    extra = (f" · **+{s.delay_min:.0f} min late**" if s.status == "Delayed"
+             else " · buses bunched" if s.status == "Bunched" else " · on schedule")
+    every = f" (scheduled every {s.term_min} min)" if s.term_min else ""
+    return f"{icon} Live: {when}{extra}{every} · {s.crowding}"
+
+
+def render_route(route, live: bool) -> None:
+    for leg in route.legs:
+        if leg.kind == "walk":
+            st.markdown(f"🚶 Walk **{leg.minutes} min**"
+                        + (f" ({leg.distance_m} m)" if leg.distance_m else ""))
+            continue
+        icon, label = ("🚌", f"Bus {leg.name}") if leg.kind == "bus" else ("🚇", leg.name)
+        st.markdown(f"{icon} **{label}**: {leg.start} → {leg.end} · "
+                    f"{leg.stops} stop{'s' if leg.stops != 1 else ''} · {leg.minutes} min")
+        if leg.kind == "bus" and live:
+            status = live_bus_line(leg)
+            if status:
+                st.caption(status)
+
+
+with tab_dir:
+    st.subheader("Directions")
+    st.caption("Door-to-door public transit routes in Seoul (ODsay), with **live delay status "
+               "for every bus** from Seoul's bus API. Car, walking and cycling times from "
+               "OpenStreetMap.")
+
+    c_from, c_swap = st.columns([8, 1], vertical_alignment="bottom")
+    c_from.text_input("From", key="dir_from",
+                      placeholder="e.g. COEX, Gangnam Station, 152 Teheran-ro")
+    c_swap.button("⇅", key="dir_swap", on_click=_swap_directions, help="Swap From and To")
+    st.text_input("To", key="dir_to",
+                  placeholder="e.g. Sinseol-dong Station, Seoul National University")
+    c_gps, c_go = st.columns([3, 1], vertical_alignment="center")
+    use_gps = c_gps.toggle("📍 Start from my current location", key="dir_gps",
+                           disabled=get_geolocation is None)
+    find = c_go.button("Find route", type="primary", key="dir_go")
+
+    gps_point = None
+    if use_gps and get_geolocation is not None:
+        loc = get_geolocation(component_key="geo_dir")
+        coords = loc.get("coords") if isinstance(loc, dict) else None
+        if coords and coords.get("latitude") is not None:
+            gps_point = (float(coords["latitude"]), float(coords["longitude"]))
+            st.caption(f"📍 Using your location (±{float(coords.get('accuracy') or 0):.0f} m)")
+        elif isinstance(loc, dict) and loc.get("error"):
+            st.warning("Location access was blocked by the browser; type a starting point.")
+        else:
+            st.caption("📍 Waiting for your browser… please allow location access.")
+
+    if find:
+        origin = (gps_point + ("Your location",)) if use_gps and gps_point else None
+        if origin is None and st.session_state.get("dir_from"):
+            origin = cached_geocode(st.session_state["dir_from"].strip(), "en")
+        dest = (cached_geocode(st.session_state["dir_to"].strip(), "en")
+                if st.session_state.get("dir_to") else None)
+        if origin is None:
+            st.info("Couldn't find the starting point. Try a station, landmark or address, "
+                    "or turn on 📍 current location.")
+        elif dest is None:
+            st.info("Couldn't find the destination. Try a station, landmark or address.")
+        else:
+            st.session_state["dir_query"] = (origin, dest)
+
+    query_pts = st.session_state.get("dir_query")
+    if query_pts:
+        (olat, olon, olabel), (dlat, dlon, dlabel) = query_pts
+        start, end = (round(olat, 5), round(olon, 5)), (round(dlat, 5), round(dlon, 5))
+        st.markdown(f"**{olabel}** → **{dlabel}**")
+
+        if not secret("ODSAY_KEY"):
+            st.warning("Transit directions aren't configured on this deployment: add the "
+                       "`ODSAY_KEY` secret.", icon="🔑")
+            status, routes = "nokey", []
+        else:
+            with st.spinner("Finding routes…"):
+                status, routes = cached_transit(start, end)
+        etas = {m: cached_osrm(m, start, end) for m in ("car", "walk", "bike")}
+
+        k1, k2, k3, k4 = st.columns(4)
+        with k1.container(border=True):
+            st.metric("🚌 Transit", format_duration(routes[0].total_min) if routes else "—")
+            st.caption(f"₩{routes[0].fare_krw:,} · fastest option" if routes else "public transit")
+        for col, (mode, icon, note) in zip((k2, k3, k4), (
+                ("car", "🚗 Car", "no traffic"), ("walk", "🚶 Walk", ""), ("bike", "🚲 Bike", ""))):
+            eta = etas[mode]
+            with col.container(border=True):
+                st.metric(icon, format_duration(eta[0]) if eta else "—")
+                st.caption(f"{eta[1]} km" + (f" · {note}" if note else "") if eta else "unavailable")
+
+        if status.startswith("error:"):
+            msg = status.removeprefix("error:")
+            if msg.startswith("-98"):
+                st.info("Start and destination are less than 700 m apart: walking is fastest.")
+            else:
+                st.error(f"Route search failed: {msg}")
+        elif status == "cap":
+            st.warning("Route searches have hit today's limit. Please try again tomorrow.", icon="⏳")
+        elif status == "ok" and not routes:
+            st.info("No public transit route found between these points.")
+
+        for i, route in enumerate(routes):
+            title = (f"{'⭐ ' if i == 0 else ''}{format_duration(route.total_min)} · "
+                     f"₩{route.fare_krw:,} · {route.modes} · {route.transfers} transfer"
+                     f"{'s' if route.transfers != 1 else ''} · walk {route.walk_min} min")
+            with st.expander(title, expanded=(i == 0)):
+                render_route(route, live=i < 3)     # live status for the top 3 routes
+
+        if routes:
+            pts = [{"lat": olat, "lon": olon, "color": ORANGE, "size": 60},
+                   {"lat": dlat, "lon": dlon, "color": "#e34948", "size": 60}]
+            pts += [{"lat": leg.start_xy[0], "lon": leg.start_xy[1], "color": BLUE, "size": 35}
+                    for leg in routes[0].legs if leg.start_xy]
+            st.map(pd.DataFrame(pts), latitude="lat", longitude="lon", color="color",
+                   size="size", height=300)
+            st.caption("Orange = start · red = destination · blue = boarding points "
+                       "of the fastest route")
 
 # --------------------------------------------------------------------------
 # Tab 0: live bus lookup (real Seoul data)
 # --------------------------------------------------------------------------
-STATUS_ICON = {"On schedule": "✅", "Delayed": "⚠️", "Bunched": "🔁", "No bus": "⏸️"}
 
 def _use_gps():
     st.session_state["gps_on"] = True

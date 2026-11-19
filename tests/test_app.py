@@ -40,7 +40,7 @@ def app():
 
 def test_app_renders_without_exceptions(app):
     assert not app.exception, app.exception
-    assert len(app.tabs) == 5
+    assert len(app.tabs) == 6
     labels = [m.label for m in app.metric]
     assert "Predicted arrival delay" in labels
     assert any(label.startswith("Chance of") for label in labels)
@@ -74,3 +74,22 @@ def test_unknown_place_shows_hint_offline(app, monkeypatch):
 
 def test_location_button_renders(app):
     assert any(b.label.startswith("📍") for b in app.button)
+
+
+def test_directions_unknown_places_explain_offline(app, monkeypatch):
+    monkeypatch.setenv("TRANSIT_OFFLINE", "1")
+    app.text_input(key="dir_from").input("어딘지모르는곳")
+    app.text_input(key="dir_to").input("또다른곳")
+    app.button(key="dir_go").click()
+    app.run()
+    assert not app.exception, app.exception
+    assert any("Couldn't find the starting point" in i.value for i in app.info)
+
+
+def test_directions_swap_button(app):
+    app.text_input(key="dir_from").input("COEX")
+    app.text_input(key="dir_to").input("Seoul Station")
+    app.button(key="dir_swap").click()
+    app.run()
+    assert app.text_input(key="dir_from").value == "Seoul Station"
+    assert app.text_input(key="dir_to").value == "COEX"

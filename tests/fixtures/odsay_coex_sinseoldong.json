@@ -1,0 +1,962 @@
+{
+ "result": {
+  "searchType": 0,
+  "outTrafficCheck": 0,
+  "busCount": 10,
+  "subwayCount": 2,
+  "subwayBusCount": 10,
+  "pointDistance": 7559,
+  "startRadius": 700,
+  "endRadius": 700,
+  "path": [
+   {
+    "pathType": 1,
+    "info": {
+     "trafficDistance": 15300.0,
+     "totalWalk": 511,
+     "totalTime": 34,
+     "payment": 1650,
+     "busTransitCount": 0,
+     "subwayTransitCount": 2,
+     "mapObj": "2:2:219:211@15:2:211:253",
+     "firstStartStation": "Samseong",
+     "firstStartStationKor": "삼성",
+     "lastEndStation": "Sinseoldong",
+     "lastEndStationKor": "신설동",
+     "totalStationCount": 12,
+     "busStationCount": 0,
+     "subwayStationCount": 12,
+     "totalDistance": 15811.0,
+     "totalWalkTime": -1,
+     "checkIntervalTime": 100,
+     "checkIntervalTimeOverYn": "N",
+     "totalIntervalTime": 15,
+     "transitIntervalTime": 0
+    },
+    "subPath": [
+     {
+      "trafficType": 3,
+      "distance": 494,
+      "sectionTime": 7
+     },
+     {
+      "trafficType": 1,
+      "distance": 9900,
+      "sectionTime": 17,
+      "stationCount": 8,
+      "lane": [
+       {
+        "name": "Line 2",
+        "nameKor": "수도권 2호선",
+        "subwayCode": 2,
+        "subwayCityCode": 1000
+       }
+      ],
+      "intervalTime": 5,
+      "startName": "Samseong",
+      "startNameKor": "삼성",
+      "startX": 127.063185,
+      "startY": 37.508869,
+      "endName": "Seongsu",
+      "endNameKor": "성수",
+      "endX": 127.055984,
+      "endY": 37.544565,
+      "way": "Seongsu",
+      "wayCode": 1,
+      "door": "0-0",
+      "startID": 219,
+      "endID": 211,
+      "startExitNo": "6",
+      "startExitX": 127.0624630612824,
+      "startExitY": 37.50930650675111,
+      "passStopList": {
+       "stations": [
+        {
+         "index": 0,
+         "stationID": 219,
+         "stationName": "Samseong",
+         "stationNameKor": "삼성",
+         "x": "127.063186",
+         "y": "37.508872"
+        },
+        {
+         "index": 1,
+         "stationID": 218,
+         "stationName": "Sports Complex",
+         "stationNameKor": "종합운동장",
+         "x": "127.073674",
+         "y": "37.511037"
+        },
+        {
+         "index": 2,
+         "stationID": 217,
+         "stationName": "Jamsilsaenae",
+         "stationNameKor": "잠실새내",
+         "x": "127.086893",
+         "y": "37.511574"
+        },
+        {
+         "index": 3,
+         "stationID": 216,
+         "stationName": "Jamsil (Songpa-gu Office)",
+         "stationNameKor": "잠실",
+         "x": "127.100171",
+         "y": "37.51335"
+        },
+        {
+         "index": 4,
+         "stationID": 215,
+         "stationName": "Jamsillaru",
+         "stationNameKor": "잠실나루",
+         "x": "127.103811",
+         "y": "37.52066"
+        },
+        {
+         "index": 5,
+         "stationID": 214,
+         "stationName": "Gangbyeon",
+         "stationNameKor": "강변",
+         "x": "127.094695",
+         "y": "37.535098"
+        },
+        {
+         "index": 6,
+         "stationID": 213,
+         "stationName": "Guui (Gwangjin-gu Office)",
+         "stationNameKor": "구의",
+         "x": "127.086158",
+         "y": "37.537144"
+        },
+        {
+         "index": 7,
+         "stationID": 212,
+         "stationName": "Konkuk Univ.",
+         "stationNameKor": "건대입구",
+         "x": "127.069276",
+         "y": "37.540372"
+        },
+        {
+         "index": 8,
+         "stationID": 211,
+         "stationName": "Seongsu",
+         "stationNameKor": "성수",
+         "x": "127.055982",
+         "y": "37.544569"
+        }
+       ]
+      }
+     },
+     {
+      "trafficType": 3,
+      "distance": 0,
+      "sectionTime": 0
+     },
+     {
+      "trafficType": 1,
+      "distance": 5400,
+      "sectionTime": 9,
+      "stationCount": 4,
+      "lane": [
+       {
+        "name": "Line 2",
+        "nameKor": "수도권 2호선",
+        "subwayCode": 2,
+        "subwayCityCode": 1000
+       }
+      ],
+      "intervalTime": 10,
+      "startName": "Seongsu",
+      "startNameKor": "성수",
+      "startX": 127.055984,
+      "startY": 37.544565,
+      "endName": "Sinseoldong",
+      "endNameKor": "신설동",
+      "endX": 127.025276,
+      "endY": 37.574618,
+      "way": "Sinseoldong",
+      "wayCode": 2,
+      "door": "null",
+      "startID": 211,
+      "endID": 253,
+      "endExitNo": "7",
+      "endExitX": 127.02623704547247,
+      "endExitY": 37.57429750455794,
+      "passStopList": {
+       "stations": [
+        {
+         "index": 0,
+         "stationID": 211,
+         "stationName": "Seongsu",
+         "stationNameKor": "성수",
+         "x": "127.055982",
+         "y": "37.544569"
+        },
+        {
+         "index": 1,
+         "stationID": 251,
+         "stationName": "Yongdap",
+         "stationNameKor": "용답",
+         "x": "127.050853",
+         "y": "37.562179"
+        },
+        {
+         "index": 2,
+         "stationID": 252,
+         "stationName": "Sindap",
+         "stationNameKor": "신답",
+         "x": "127.047095",
+         "y": "37.5698"
+        },
+        {
+         "index": 3,
+         "stationID": 254,
+         "stationName": "Yongdu",
+         "stationNameKor": "용두",
+         "x": "127.038547",
+         "y": "37.573964"
+        },
+        {
+         "index": 4,
+         "stationID": 253,
+         "stationName": "Sinseoldong",
+         "stationNameKor": "신설동",
+         "x": "127.025272",
+         "y": "37.574614"
+        }
+       ]
+      }
+     },
+     {
+      "trafficType": 3,
+      "distance": 17,
+      "sectionTime": 1
+     }
+    ]
+   },
+   {
+    "pathType": 3,
+    "info": {
+     "trafficDistance": 12773.0,
+     "totalWalk": 695,
+     "totalTime": 48,
+     "payment": 1650,
+     "busTransitCount": 1,
+     "subwayTransitCount": 1,
+     "mapObj": "9:2:929:925@1054:1:18:30",
+     "firstStartStation": "Bongeunsa",
+     "firstStartStationKor": "봉은사",
+     "lastEndStation": "Sinseol-dong Station",
+     "lastEndStationKor": "신설동역",
+     "totalStationCount": 16,
+     "busStationCount": 12,
+     "subwayStationCount": 4,
+     "totalDistance": 13468.0,
+     "totalWalkTime": -1,
+     "checkIntervalTime": 100,
+     "checkIntervalTimeOverYn": "N",
+     "totalIntervalTime": 15,
+     "transitIntervalTime": 0
+    },
+    "subPath": [
+     {
+      "trafficType": 3,
+      "distance": 280,
+      "sectionTime": 4
+     },
+     {
+      "trafficType": 1,
+      "distance": 3200,
+      "sectionTime": 8,
+      "stationCount": 4,
+      "lane": [
+       {
+        "name": "Line 9",
+        "nameKor": "수도권 9호선",
+        "subwayCode": 9,
+        "subwayCityCode": 1000
+       }
+      ],
+      "intervalTime": 6,
+      "startName": "Bongeunsa",
+      "startNameKor": "봉은사",
+      "startX": 127.060234,
+      "startY": 37.514252,
+      "endName": "Sinnonhyeon",
+      "endNameKor": "신논현",
+      "endX": 127.024525,
+      "endY": 37.504466,
+      "way": "Sinnonhyeon",
+      "wayCode": 2,
+      "door": "null",
+      "startID": 929,
+      "endID": 925,
+      "startExitNo": "7",
+      "startExitX": 127.05996250829055,
+      "startExitY": 37.513945542452994,
+      "endExitNo": "2",
+      "endExitX": 127.0241074082684,
+      "endExitY": 37.50478928421981,
+      "passStopList": {
+       "stations": [
+        {
+         "index": 0,
+         "stationID": 929,
+         "stationName": "Bongeunsa",
+         "stationNameKor": "봉은사",
+         "x": "127.06023",
+         "y": "37.51425"
+        },
+        {
+         "index": 1,
+         "stationID": 928,
+         "stationName": "Samseong Jungang",
+         "stationNameKor": "삼성중앙",
+         "x": "127.052932",
+         "y": "37.512946"
+        },
+        {
+         "index": 2,
+         "stationID": 927,
+         "stationName": "Seonjeongneung",
+         "stationNameKor": "선정릉",
+         "x": "127.043412",
+         "y": "37.510138"
+        },
+        {
+         "index": 3,
+         "stationID": 926,
+         "stationName": "Eonju",
+         "stationNameKor": "언주",
+         "x": "127.033909",
+         "y": "37.507323"
+        },
+        {
+         "index": 4,
+         "stationID": 925,
+         "stationName": "Sinnonhyeon",
+         "stationNameKor": "신논현",
+         "x": "127.024504",
+         "y": "37.504454"
+        }
+       ]
+      }
+     },
+     {
+      "trafficType": 3,
+      "distance": 222,
+      "sectionTime": 3
+     },
+     {
+      "trafficType": 2,
+      "distance": 9573,
+      "sectionTime": 30,
+      "stationCount": 12,
+      "lane": [
+       {
+        "busNo": "420",
+        "busNoKor": "420",
+        "type": 11,
+        "busID": 1054,
+        "busLocalBlID": "100100068",
+        "busCityCode": 1000,
+        "busProviderCode": 4
+       }
+      ],
+      "intervalTime": 9,
+      "startName": "Nonhyeon Station",
+      "startNameKor": "논현역",
+      "startX": 127.023653,
+      "startY": 37.506342,
+      "endName": "Sinseol-dong Station",
+      "endNameKor": "신설동역",
+      "endX": 127.025289,
+      "endY": 37.57624,
+      "startID": 105923,
+      "startStationCityCode": 1000,
+      "startStationProviderCode": 4,
+      "startLocalStationID": "121000014",
+      "startArsID": "22014",
+      "endID": 80611,
+      "endStationCityCode": 1000,
+      "endStationProviderCode": 4,
+      "endLocalStationID": "105000486",
+      "endArsID": "06027",
+      "passStopList": {
+       "stations": [
+        {
+         "index": 0,
+         "stationID": 105923,
+         "stationName": "Nonhyeon Station",
+         "stationNameKor": "논현역",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "121000014",
+         "arsID": "22014",
+         "x": "127.023653",
+         "y": "37.506342",
+         "isNonStop": "N"
+        },
+        {
+         "index": 1,
+         "stationID": 105884,
+         "stationName": "Sinsa Station",
+         "stationNameKor": "신사역",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "121000016",
+         "arsID": "22016",
+         "x": "127.020593",
+         "y": "37.512867",
+         "isNonStop": "N"
+        },
+        {
+         "index": 2,
+         "stationID": 206223,
+         "stationName": "Hannamdaegyo Bridge View Cafe & Apgujeong Dock",
+         "stationNameKor": "한남대교전망카페.압구정선착장",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "122000408",
+         "arsID": "23531",
+         "x": "127.015838",
+         "y": "37.524415",
+         "isNonStop": "N"
+        },
+        {
+         "index": 3,
+         "stationID": 105378,
+         "stationName": "Hannam Ogeori",
+         "stationNameKor": "한남오거리",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "102000072",
+         "arsID": "03166",
+         "x": "127.008281",
+         "y": "37.532957",
+         "isNonStop": "N"
+        },
+        {
+         "index": 4,
+         "stationID": 105318,
+         "stationName": "Soonchunhyang Univ. Hospital",
+         "stationNameKor": "순천향대학병원",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "102000068",
+         "arsID": "03162",
+         "x": "127.005746",
+         "y": "37.536405",
+         "isNonStop": "N"
+        },
+        {
+         "index": 5,
+         "stationID": 105268,
+         "stationName": "Seoul Metropolitan Institute of Technology Education Jungbu & Blue Square",
+         "stationNameKor": "서울시기술교육원중부.블루스퀘어",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "102000066",
+         "arsID": "03160",
+         "x": "127.003595",
+         "y": "37.541613",
+         "isNonStop": "N"
+        },
+        {
+         "index": 6,
+         "stationID": 105195,
+         "stationName": "National Theater of Korea. Banyan Tree Hotel",
+         "stationNameKor": "국립극장.반얀트리호텔",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "101000105",
+         "arsID": "02209",
+         "x": "127.000952",
+         "y": "37.551385",
+         "isNonStop": "N"
+        },
+        {
+         "index": 7,
+         "stationID": 105313,
+         "stationName": "Jangchung-dong Dongguk Univ. Entrance",
+         "stationNameKor": "장충동.동국대입구",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "101000099",
+         "arsID": "02203",
+         "x": "127.005878",
+         "y": "37.560581",
+         "isNonStop": "N"
+        },
+        {
+         "index": 8,
+         "stationID": 105358,
+         "stationName": "Dongdaemun History & Culture Park Stn. Exit 9",
+         "stationNameKor": "동대문역사문화공원역9번출구",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "101000072",
+         "arsID": "02171",
+         "x": "127.007763",
+         "y": "37.565228",
+         "isNonStop": "N"
+        },
+        {
+         "index": 9,
+         "stationID": 206064,
+         "stationName": "Dongdaemun History & Culture Park",
+         "stationNameKor": "동대문역사문화공원",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "101000075",
+         "arsID": "02174",
+         "x": "127.009261",
+         "y": "37.567475",
+         "isNonStop": "N"
+        },
+        {
+         "index": 10,
+         "stationID": 105523,
+         "stationName": "Dongdaemun Station. Heunginjimun Gate",
+         "stationNameKor": "동대문역.흥인지문",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "100000398",
+         "arsID": "01023",
+         "x": "127.013859",
+         "y": "37.572478",
+         "isNonStop": "N"
+        },
+        {
+         "index": 11,
+         "stationID": 80608,
+         "stationName": "Dongmyoap & Seoul Hyehwa Police Station",
+         "stationNameKor": "동묘앞.서울혜화경찰서",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "100000366",
+         "arsID": "01041",
+         "x": "127.018574",
+         "y": "37.573815",
+         "isNonStop": "N"
+        },
+        {
+         "index": 12,
+         "stationID": 80611,
+         "stationName": "Sinseol-dong Station",
+         "stationNameKor": "신설동역",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "105000486",
+         "arsID": "06027",
+         "x": "127.025289",
+         "y": "37.57624",
+         "isNonStop": "N"
+        }
+       ]
+      }
+     },
+     {
+      "trafficType": 3,
+      "distance": 193,
+      "sectionTime": 3
+     }
+    ]
+   },
+   {
+    "pathType": 2,
+    "info": {
+     "trafficDistance": 11152.0,
+     "totalWalk": 401,
+     "totalTime": 48,
+     "payment": 1600,
+     "busTransitCount": 2,
+     "subwayTransitCount": 0,
+     "mapObj": "1018:1:33:42@1259:1:50:60",
+     "firstStartStation": "Bongeunsa Station Exit 3. Samseong 1 Police Substation",
+     "firstStartStationKor": "봉은사역3번출구.삼성1파출소",
+     "lastEndStation": "Sinseol-dong Station. Seoul Pungmul Market",
+     "lastEndStationKor": "신설동역.서울풍물시장",
+     "totalStationCount": 18,
+     "busStationCount": 18,
+     "subwayStationCount": 0,
+     "totalDistance": 11553.0,
+     "totalWalkTime": -1,
+     "checkIntervalTime": 100,
+     "checkIntervalTimeOverYn": "N",
+     "totalIntervalTime": 20,
+     "transitIntervalTime": 0
+    },
+    "subPath": [
+     {
+      "trafficType": 3,
+      "distance": 377,
+      "sectionTime": 6
+     },
+     {
+      "trafficType": 2,
+      "distance": 4532,
+      "sectionTime": 18,
+      "stationCount": 8,
+      "lane": [
+       {
+        "busNo": "3217",
+        "busNoKor": "3217",
+        "type": 12,
+        "busID": 1018,
+        "busLocalBlID": "100100216",
+        "busCityCode": 1000,
+        "busProviderCode": 4
+       }
+      ],
+      "intervalTime": 12,
+      "startName": "Bongeunsa Station Exit 3. Samseong 1 Police Substation",
+      "startNameKor": "봉은사역3번출구.삼성1파출소",
+      "startX": 127.060143,
+      "startY": 37.515197,
+      "endName": "Catholic Hwayang-dong Seongdang",
+      "endNameKor": "천주교화양동성당",
+      "endX": 127.073632,
+      "endY": 37.545903,
+      "startID": 107706,
+      "startStationCityCode": 1000,
+      "startStationProviderCode": 4,
+      "startLocalStationID": "122000089",
+      "startArsID": "23192",
+      "endID": 108237,
+      "endStationCityCode": 1000,
+      "endStationProviderCode": 4,
+      "endLocalStationID": "104000141",
+      "endArsID": "05234",
+      "passStopList": {
+       "stations": [
+        {
+         "index": 0,
+         "stationID": 107706,
+         "stationName": "Bongeunsa Station Exit 3. Samseong 1 Police Substation",
+         "stationNameKor": "봉은사역3번출구.삼성1파출소",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "122000089",
+         "arsID": "23192",
+         "x": "127.060143",
+         "y": "37.515197",
+         "isNonStop": "N"
+        },
+        {
+         "index": 1,
+         "stationID": 107630,
+         "stationName": "Cheongdam Station. Kyunggi High School",
+         "stationNameKor": "청담역.경기고교",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "122000085",
+         "arsID": "23188",
+         "x": "127.057897",
+         "y": "37.519279",
+         "isNonStop": "N"
+        },
+        {
+         "index": 2,
+         "stationID": 107576,
+         "stationName": "Woori Bank Cheongdam Branch. Cheongdam Samick Apt.",
+         "stationNameKor": "우리은행청담지점.청담삼익아파트",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "122000069",
+         "arsID": "23171",
+         "x": "127.056924",
+         "y": "37.5211",
+         "isNonStop": "N"
+        },
+        {
+         "index": 3,
+         "stationID": 107537,
+         "stationName": "Yeongdongdaegyo Bridge South End & Cheongdam Xi Apt.",
+         "stationNameKor": "영동대교남단.청담자이아파트",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "122000066",
+         "arsID": "23168",
+         "x": "127.056032",
+         "y": "37.522733",
+         "isNonStop": "N"
+        },
+        {
+         "index": 4,
+         "stationID": 107739,
+         "stationName": "Yeongdongdaegyo Bridge North",
+         "stationNameKor": "영동대교북단",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "104000127",
+         "arsID": "05220",
+         "x": "127.06112",
+         "y": "37.53656",
+         "isNonStop": "N"
+        },
+        {
+         "index": 5,
+         "stationID": 107817,
+         "stationName": "Yeongdonggyo Golmok Market",
+         "stationNameKor": "영동교골목시장",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "104000123",
+         "arsID": "05216",
+         "x": "127.062767",
+         "y": "37.539682",
+         "isNonStop": "N"
+        },
+        {
+         "index": 6,
+         "stationID": 193730,
+         "stationName": "Konkuk Univ. Station Exit 6",
+         "stationNameKor": "건대입구역6번출구",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "104000124",
+         "arsID": "05217",
+         "x": "127.06721",
+         "y": "37.540915",
+         "isNonStop": "N"
+        },
+        {
+         "index": 7,
+         "stationID": 5009699,
+         "stationName": "Konkuk Univ.",
+         "stationNameKor": "건대입구(가상)",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "104000304",
+         "arsID": "05499",
+         "x": "127.071032",
+         "y": "37.540179",
+         "isNonStop": "Y"
+        },
+        {
+         "index": 8,
+         "stationID": 108145,
+         "stationName": "Konkuk Univ. Station Sageori. Konkuk University Medical Center",
+         "stationNameKor": "건대입구역사거리.건대병원",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "104000139",
+         "arsID": "05232",
+         "x": "127.071319",
+         "y": "37.540794",
+         "isNonStop": "N"
+        },
+        {
+         "index": 9,
+         "stationID": 108237,
+         "stationName": "Catholic Hwayang-dong Seongdang",
+         "stationNameKor": "천주교화양동성당",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "104000141",
+         "arsID": "05234",
+         "x": "127.073632",
+         "y": "37.545903",
+         "isNonStop": "N"
+        }
+       ]
+      }
+     },
+     {
+      "trafficType": 3,
+      "distance": 0,
+      "sectionTime": 0
+     },
+     {
+      "trafficType": 2,
+      "distance": 6620,
+      "sectionTime": 23,
+      "stationCount": 10,
+      "lane": [
+       {
+        "busNo": "721",
+        "busNoKor": "721",
+        "type": 11,
+        "busID": 1259,
+        "busLocalBlID": "100100112",
+        "busCityCode": 1000,
+        "busProviderCode": 4
+       }
+      ],
+      "intervalTime": 8,
+      "startName": "Catholic Hwayang-dong Seongdang",
+      "startNameKor": "천주교화양동성당",
+      "startX": 127.073632,
+      "startY": 37.545903,
+      "endName": "Sinseol-dong Station. Seoul Pungmul Market",
+      "endNameKor": "신설동역.서울풍물시장",
+      "endX": 127.025663,
+      "endY": 37.574459,
+      "startID": 108237,
+      "startStationCityCode": 1000,
+      "startStationProviderCode": 4,
+      "startLocalStationID": "104000141",
+      "startArsID": "05234",
+      "endID": 106162,
+      "endStationCityCode": 1000,
+      "endStationProviderCode": 4,
+      "endLocalStationID": "105000008",
+      "endArsID": "06008",
+      "passStopList": {
+       "stations": [
+        {
+         "index": 0,
+         "stationID": 108237,
+         "stationName": "Catholic Hwayang-dong Seongdang",
+         "stationNameKor": "천주교화양동성당",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "104000141",
+         "arsID": "05234",
+         "x": "127.073632",
+         "y": "37.545903",
+         "isNonStop": "N"
+        },
+        {
+         "index": 1,
+         "stationID": 108352,
+         "stationName": "Children's Grand Park",
+         "stationNameKor": "어린이대공원앞",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "104000047",
+         "arsID": "05140",
+         "x": "127.077007",
+         "y": "37.55212",
+         "isNonStop": "N"
+        },
+        {
+         "index": 2,
+         "stationID": 108402,
+         "stationName": "Gunja Stn. Exit 6",
+         "stationNameKor": "군자역6번출구",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "104000048",
+         "arsID": "05141",
+         "x": "127.078577",
+         "y": "37.555169",
+         "isNonStop": "N"
+        },
+        {
+         "index": 3,
+         "stationID": 108330,
+         "stationName": "Gunjagyo Bridge Entrance",
+         "stationNameKor": "군자교입구",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "104000001",
+         "arsID": "05001",
+         "x": "127.07584",
+         "y": "37.558652",
+         "isNonStop": "N"
+        },
+        {
+         "index": 4,
+         "stationID": 107962,
+         "stationName": "Janghanpyeong Station",
+         "stationNameKor": "장한평역",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "105000003",
+         "arsID": "06003",
+         "x": "127.067275",
+         "y": "37.561153",
+         "isNonStop": "N"
+        },
+        {
+         "index": 5,
+         "stationID": 107748,
+         "stationName": "Junior Chamber",
+         "stationNameKor": "청년회의소",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "105000002",
+         "arsID": "06002",
+         "x": "127.061424",
+         "y": "37.561981",
+         "isNonStop": "N"
+        },
+        {
+         "index": 6,
+         "stationID": 107489,
+         "stationName": "Dapsimni Samgeori",
+         "stationNameKor": "답십리역사거리",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "105000001",
+         "arsID": "06001",
+         "x": "127.055137",
+         "y": "37.565085",
+         "isNonStop": "N"
+        },
+        {
+         "index": 7,
+         "stationID": 122217,
+         "stationName": "Sindap Elementary School. Cheonggye Hanshin Hyuplus",
+         "stationNameKor": "신답초등학교.청계한신휴플러스",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "105000005",
+         "arsID": "06005",
+         "x": "127.044592",
+         "y": "37.571785",
+         "isNonStop": "N"
+        },
+        {
+         "index": 8,
+         "stationID": 106731,
+         "stationName": "Dongdaemun-gu Office",
+         "stationNameKor": "동대문구청",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "105000006",
+         "arsID": "06006",
+         "x": "127.038428",
+         "y": "37.574023",
+         "isNonStop": "N"
+        },
+        {
+         "index": 9,
+         "stationID": 106445,
+         "stationName": "Seoul Dongbu Hospital",
+         "stationNameKor": "서울시동부병원",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "105000007",
+         "arsID": "06007",
+         "x": "127.030878",
+         "y": "37.573935",
+         "isNonStop": "N"
+        },
+        {
+         "index": 10,
+         "stationID": 106162,
+         "stationName": "Sinseol-dong Station. Seoul Pungmul Market",
+         "stationNameKor": "신설동역.서울풍물시장",
+         "stationCityCode": 1000,
+         "stationProviderCode": 4,
+         "localStationID": "105000008",
+         "arsID": "06008",
+         "x": "127.025663",
+         "y": "37.574459",
+         "isNonStop": "N"
+        }
+       ]
+      }
+     },
+     {
+      "trafficType": 3,
+      "distance": 24,
+      "sectionTime": 1
+     }
+    ]
+   }
+  ]
+ }
+}
