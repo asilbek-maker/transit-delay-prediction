@@ -23,7 +23,13 @@ sys.path.insert(0, str(ROOT))
 # must be importable before joblib.load().
 from src.features import RUSH_HOURS, SEASON_BY_MONTH  # noqa: E402
 from src.collectors.seoul_bus import QuotaExceeded, fetch_route  # noqa: E402
-from src.live_bus import load_stop_index, search_stops, summarize_stop  # noqa: E402
+from src.live_bus import (geocode, load_stop_index, nearest_stops,  # noqa: E402
+                          search_stops, summarize_stop)
+
+try:  # browser geolocation component (optional: the app still works without it)
+    from streamlit_js_eval import get_geolocation
+except ImportError:  # pragma: no cover
+    get_geolocation = None
 
 KST = timezone(timedelta(hours=9))
 APP_DAILY_CALL_CAP = 300   # protects the quota shared with the scheduled data collector
@@ -106,6 +112,25 @@ def bus_key() -> str:
     except Exception:  # noqa: BLE001 - no secrets file configured
         key = ""
     return str(key or os.environ.get("DATA_GO_KR_KEY", "")).strip()
+
+
+@st.cache_resource
+def geocode_clock() -> dict:
+    return {"last": 0.0}
+
+
+@st.cache_data(ttl=24 * 3600, show_spinner=False)
+def cached_geocode(query: str):
+    """Nominatim allows 1 request/second: cache for a day and space out calls."""
+    import time as _time
+    if os.environ.get("TRANSIT_OFFLINE") == "1":      # tests: never call external services
+        return None
+    clock = geocode_clock()
+    wait = 1.1 - (_time.monotonic() - clock["last"])
+    if wait > 0:
+        _time.sleep(wait)
+    clock["last"] = _time.monotonic()
+    return geocode(query)
 
 
 @st.cache_resource
@@ -290,64 +315,123 @@ tab_live, tab_pred, tab_perf, tab_insights, tab_about = st.tabs(
 # --------------------------------------------------------------------------
 STATUS_ICON = {"On schedule": "✅", "Delayed": "⚠️", "Bunched": "🔁", "No bus": "⏸️"}
 
+def _use_gps():
+    st.session_state["gps_on"] = True
+    st.session_state["stop_query"] = ""
+
+
+def _typed_departure():
+    st.session_state["gps_on"] = False
+
+
+def render_live_stop(stop: dict) -> None:
+    """Live cards for every tracked route serving one physical stop."""
+    if not bus_key():
+        st.warning("Live data isn't configured on this deployment: add the "
+                   "`DATA_GO_KR_KEY` secret to enable it.", icon="🔑")
+        return
+    statuses, updated = [], None
+    for r in stop["routes"]:
+        rows, stamp = live_route(r["route_id"])
+        if stamp in ("cap", "quota"):
+            st.warning("Live lookups have hit today's limit. Please try again tomorrow.", icon="⏳")
+            return
+        updated = stamp
+        row = next((x for x in rows if int(x.get("staOrd", -1)) == r["ord"]), None)
+        if row is not None:
+            statuses.append((r, summarize_stop(row, r["term"])))
+    if not statuses:
+        st.info("No live data for this stop right now (outside service hours?).")
+        return
+    late = [s for _, s in statuses if s.status == "Delayed"]
+    headline = (f"⚠️ {len(late)} of {len(statuses)} route(s) running late" if late
+                else f"✅ All {len(statuses)} route(s) on schedule")
+    walk = (f" · {stop['distance_m']} m away ({stop['walk_min']} min walk)"
+            if "distance_m" in stop else "")
+    st.markdown(f"#### {stop['stNm']} (#{stop['arsId']}){walk}")
+    st.markdown(f"**{headline}** · updated {updated} KST · refreshes every 2 minutes")
+    for r, s in statuses:
+        with st.container(border=True):
+            st.markdown(f"**Route {s.route}** → towards {r['next_stop']}")
+            c1, c2, c3, c4 = st.columns(4)
+            c1.metric("Next bus", "Arriving" if s.next_min == 0
+                      else (f"{s.next_min:.0f} min" if s.next_min else "—"))
+            c2.metric("Following bus", f"{s.second_min:.0f} min" if s.second_min else "—")
+            c3.metric("Status", f"{STATUS_ICON.get(s.status, 'ℹ️')} {s.status}")
+            c4.metric("Delay vs schedule", f"+{s.delay_min:.0f} min" if s.delay_min else "0 min")
+            st.caption(f"Scheduled every {s.term_min} min · {s.crowding}"
+                       + (f" · {s.message}" if s.message else ""))
+    if st.button("Refresh now", key="refresh_live"):
+        live_route.clear()
+        st.rerun()
+
+
 with tab_live:
-    st.subheader("Where are you? See live buses and delays")
+    st.subheader("Where are you departing from?")
     index = stop_index()
     route_names = ", ".join(r["rtNm"] for r in index["routes"].values())
-    st.caption(f"Real-time data from Seoul (서울특별시 버스도착정보) for trunk routes {route_names}. "
-               "A bus counts as **delayed** when it is further away than its scheduled interval "
-               "(+2 min tolerance), and **bunched** when two buses arrive much closer together "
-               "than scheduled.")
-    query = st.text_input("Stop name or stop number",
-                          placeholder="e.g. 선릉역, 신설동, 강남, 잠실, 23218", key="stop_query")
-    if query:
-        results = search_stops(index, query)
-        if not results:
-            st.info(f"No stop on routes {route_names} matches “{query}”. "
-                    "Try a shorter name, e.g. 선릉 instead of 선릉역 2번출구.")
+    st.caption(f"Live data from Seoul (서울특별시 버스도착정보) for trunk routes {route_names}. "
+               "A bus is **delayed** when it is further away than its scheduled interval "
+               "(+2 min tolerance) and **bunched** when two arrive much closer together than "
+               "scheduled.")
+
+    col_txt, col_gps = st.columns([3, 1], vertical_alignment="bottom")
+    with col_txt:
+        query = st.text_input("Departure: place, address or bus stop",
+                              placeholder="e.g. 코엑스, 강남역, 테헤란로 152, 신설동, 23218",
+                              key="stop_query", on_change=_typed_departure)
+    with col_gps:
+        st.button("📍 Use my location", key="use_gps", on_click=_use_gps,
+                  disabled=get_geolocation is None,
+                  help="Your browser will ask for permission. The location is only used to "
+                       "find nearby stops and is not stored.")
+
+    origin, origin_label, candidates = None, None, []
+    if st.session_state.get("gps_on") and get_geolocation is not None:
+        loc = get_geolocation(component_key="geo")
+        coords = loc.get("coords") if isinstance(loc, dict) else None
+        if coords and coords.get("latitude") is not None:
+            origin = (float(coords["latitude"]), float(coords["longitude"]))
+            origin_label = f"your location (±{float(coords.get('accuracy') or 0):.0f} m)"
+        elif isinstance(loc, dict) and loc.get("error"):
+            st.warning("Location access was blocked by the browser. Type where you're "
+                       "departing from instead.", icon="📍")
         else:
-            labels = [f"{s['stNm']}  ·  #{s['arsId']}  ·  routes "
-                      f"{', '.join(r['rtNm'] for r in s['routes'])}" for s in results]
-            choice = st.selectbox(f"{len(results)} matching stop(s)", range(len(results)),
-                                  format_func=lambda i: labels[i], key="stop_choice")
-            stop = results[choice]
-            if not bus_key():
-                st.warning("Live data isn't configured on this deployment: add the "
-                           "`DATA_GO_KR_KEY` secret to enable it.", icon="🔑")
+            st.caption("📍 Waiting for your browser… please allow location access.")
+    elif query:
+        candidates = search_stops(index, query)
+        if not candidates:
+            with st.spinner("Looking up the place…"):
+                found = cached_geocode(query.strip())
+            if found:
+                origin, origin_label = found[:2], found[2]
             else:
-                statuses, updated = [], None
-                for r in stop["routes"]:
-                    rows, stamp = live_route(r["route_id"])
-                    if stamp in ("cap", "quota"):
-                        st.warning("Live lookups have hit today's limit. Please try again tomorrow.",
-                                   icon="⏳")
-                        break
-                    updated = stamp
-                    row = next((x for x in rows if int(x.get("staOrd", -1)) == r["ord"]), None)
-                    if row is not None:
-                        statuses.append((r, summarize_stop(row, r["term"])))
-                if statuses:
-                    late = [s for _, s in statuses if s.status == "Delayed"]
-                    headline = (f"⚠️ {len(late)} of {len(statuses)} route(s) running late"
-                                if late else f"✅ All {len(statuses)} route(s) on schedule")
-                    st.markdown(f"#### {stop['stNm']} (#{stop['arsId']}): {headline}")
-                    st.caption(f"Updated {updated} KST · refreshes every 2 minutes")
-                for r, s in statuses:
-                    with st.container(border=True):
-                        st.markdown(f"**Route {s.route}** → towards {r['next_stop']}")
-                        c1, c2, c3, c4 = st.columns(4)
-                        c1.metric("Next bus", "Arriving" if s.next_min == 0
-                                  else (f"{s.next_min:.0f} min" if s.next_min else "—"))
-                        c2.metric("Following bus",
-                                  f"{s.second_min:.0f} min" if s.second_min else "—")
-                        c3.metric("Status", f"{STATUS_ICON.get(s.status, 'ℹ️')} {s.status}")
-                        c4.metric("Delay vs schedule",
-                                  f"+{s.delay_min:.0f} min" if s.delay_min else "0 min")
-                        st.caption(f"Scheduled every {s.term_min} min · {s.crowding}"
-                                   + (f" · {s.message}" if s.message else ""))
-                if st.button("Refresh now", key="refresh_live"):
-                    live_route.clear()
-                    st.rerun()
+                st.info(f"Couldn't find “{query}” in Seoul. Try a station, landmark or address.")
+
+    if origin is not None:
+        candidates = nearest_stops(index, origin[0], origin[1], k=6)
+        if not candidates:
+            st.info(f"No stop on routes {route_names} within 2 km of {origin_label}. "
+                    "Live lookups cover these 7 trunk routes only.")
+        else:
+            st.markdown(f"**Nearest stops to {origin_label}**")
+            pts = pd.DataFrame(
+                [{"lat": origin[0], "lon": origin[1], "color": ORANGE, "size": 40}]
+                + [{"lat": c["lat"], "lon": c["lon"], "color": BLUE, "size": 25}
+                   for c in candidates])
+            st.map(pts, latitude="lat", longitude="lon", color="color", size="size",
+                   zoom=15, height=260)
+            st.caption("Orange = departure · blue = nearby stops on tracked routes")
+
+    if candidates:
+        def _label(c: dict) -> str:
+            dist = (f"  ·  {c['distance_m']} m, {c['walk_min']} min walk"
+                    if "distance_m" in c else "")
+            return (f"{c['stNm']}  ·  #{c['arsId']}{dist}  ·  routes "
+                    f"{', '.join(r['rtNm'] for r in c['routes'])}")
+        choice = st.selectbox(f"{len(candidates)} stop(s): pick one", range(len(candidates)),
+                              format_func=lambda i: _label(candidates[i]), key="stop_choice")
+        render_live_stop(candidates[choice])
 
 # --------------------------------------------------------------------------
 # Tab 1: prediction

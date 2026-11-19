@@ -64,8 +64,13 @@ def test_live_lookup_without_key_explains_instead_of_failing(app, monkeypatch):
     assert any("DATA_GO_KR_KEY" in w.value for w in app.warning)
 
 
-def test_live_lookup_with_unknown_stop_shows_hint(app):
-    app.text_input(key="stop_query").input("존재하지않는정류장")
+def test_unknown_place_shows_hint_offline(app, monkeypatch):
+    monkeypatch.setenv("TRANSIT_OFFLINE", "1")
+    app.text_input(key="stop_query").input("존재하지않는장소")
     app.run()
     assert not app.exception, app.exception
-    assert any("No stop" in i.value for i in app.info)
+    assert any("Couldn't find" in i.value for i in app.info)
+
+
+def test_location_button_renders(app):
+    assert any(b.label.startswith("📍") for b in app.button)
