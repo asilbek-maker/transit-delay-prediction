@@ -1,5 +1,10 @@
 """Tests for the live stop lookup (offline: uses the committed stop index)."""
-from src.live_bus import load_stop_index, search_stops, summarize_stop
+import io
+import json
+
+import src.live_bus as lb
+from src.live_bus import (geocode, haversine_m, load_stop_index, nearest_stops,
+                          search_stops, summarize_stop)
 
 INDEX = load_stop_index()
 
@@ -52,3 +57,37 @@ def test_no_bus_uses_api_message():
 def test_arriving_now():
     s = summarize_stop(_row(30, 600, isArrive1="1"), term=7)
     assert s.next_min == 0.0 and s.status == "On schedule"
+
+
+def test_haversine_known_distance():
+    # 강남역 -> 코엑스 is roughly 3.0 km
+    assert 2700 < haversine_m(37.4979, 127.0276, 37.5119, 127.0591) < 3300
+
+
+def test_nearest_stops_finds_stop_itself_first():
+    stop = next(s for r in INDEX["routes"].values() for s in r["stops"] if s["arsId"] == "06008")
+    near = nearest_stops(INDEX, stop["lat"], stop["lon"], k=3)
+    assert near[0]["arsId"] == "06008" and near[0]["distance_m"] == 0
+    assert {r["rtNm"] for r in near[0]["routes"]} == {"303", "370"}
+    assert [n["distance_m"] for n in near] == sorted(n["distance_m"] for n in near)
+
+
+def test_nearest_stops_respects_radius():
+    assert nearest_stops(INDEX, 35.1796, 129.0756) == []        # Busan: nothing nearby
+
+
+def test_geocode_parses_nominatim_response(monkeypatch):
+    payload = [{"lat": "37.5118", "lon": "127.0591",
+                "display_name": "코엑스, 테헤란로87길, 삼성동, 강남구, 서울특별시"}]
+    monkeypatch.setattr(lb.urllib.request, "urlopen",
+                        lambda req, timeout=0: io.BytesIO(json.dumps(payload).encode()))
+    lat, lon, label = geocode("코엑스")
+    assert (round(lat, 4), round(lon, 4)) == (37.5118, 127.0591)
+    assert label == "코엑스, 테헤란로87길, 삼성동"
+
+
+def test_geocode_returns_none_on_network_error(monkeypatch):
+    def boom(*a, **k):
+        raise OSError("offline")
+    monkeypatch.setattr(lb.urllib.request, "urlopen", boom)
+    assert geocode("anything") is None
