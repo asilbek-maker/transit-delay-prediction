@@ -1,7 +1,7 @@
 name: Collect Seoul bus arrivals
 
-# Four ~5.75-hour shifts cover the service day. Each shift polls 4 trunk routes
-# (146, 152, 370, 753) every 6 minutes (~800 calls/day) and commits gzip CSVs
+# Four ~5.75-hour shifts cover the service day. Each shift polls 7 trunk routes
+# (146, 152, 301, 302, 303, 370, 753) every 10 minutes (~840 calls/day) and commits gzip CSVs
 # to the live-data branch.
 on:
   schedule:

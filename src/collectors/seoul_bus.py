@@ -37,6 +37,9 @@ API = ("http://ws.bus.go.kr/api/rest/arrive/getArrInfoByRouteAll"
 ROUTES = {
     "100100025": "146",   # 135 stops, every ~7 min
     "100100031": "152",   # 131 stops, long cross-city trunk
+    "100100051": "301",   # 100 stops, every ~7 min
+    "100100052": "302",   # 126 stops, every ~12 min (Seongnam 상대원 → 왕십리)
+    "100100053": "303",   # 106 stops, every ~9 min (Seongnam 상대원 → 신설동)
     "100100061": "370",   # every ~5 min, most frequent
     "100100118": "753",   # 104 stops, every ~12 min
 }
@@ -144,8 +147,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=Path("data/live/bus"))
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--minutes", type=float, default=0)
-    # 4 routes x one call per poll every 6 min over ~20 service hours ≈ 800 calls/day.
-    parser.add_argument("--interval", type=int, default=360)
+    # 7 routes x one call per poll every 10 min over ~20 service hours ≈ 840 calls/day.
+    parser.add_argument("--interval", type=int, default=600)
     parser.add_argument("--require-key", action="store_true")
     args = parser.parse_args(argv)
     for stream in (sys.stdout, sys.stderr):

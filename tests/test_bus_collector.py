@@ -48,7 +48,7 @@ def test_append_gzip_members_read_back_as_one_csv(tmp_path):
 
 
 def test_routes_are_all_known_trunk_ids():
-    assert set(b.ROUTES.values()) == {"146", "152", "370", "753"}
+    assert set(b.ROUTES.values()) == {"146", "152", "301", "302", "303", "370", "753"}
     assert all(r.startswith("1001") and len(r) == 9 for r in b.ROUTES)
 
 
